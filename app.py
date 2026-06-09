@@ -29,8 +29,7 @@ if os.environ.get("APPLICATIONINSIGHTS_CONNECTION_STRING"):
         app.logger.warning("Application Insights nao configurado: %s", exc)
 
 EQUIPE = [
-    {"nome": "Bruno Eduardo Caputo Paulino", "rm": "558303"},
-    {"nome": "Teste de pipeline", "rm": "xxxxxx"}
+    {"nome": "Bruno Eduardo Caputo Paulino", "rm": "558303"}
 
 ]
 
