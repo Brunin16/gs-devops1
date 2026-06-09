@@ -29,7 +29,9 @@ if os.environ.get("APPLICATIONINSIGHTS_CONNECTION_STRING"):
         app.logger.warning("Application Insights nao configurado: %s", exc)
 
 EQUIPE = [
-    {"nome": "Bruno Eduardo Caputo Paulino", "rm": "558303"}
+    {"nome": "Bruno Eduardo Caputo Paulino", "rm": "558303"},
+    {"nome": "Teste de pipeline", "rm": "xxxxxx"}
+
 ]
 
 # Em producao este valor chega via Key Vault reference (App Setting). Localmente usa o default.
