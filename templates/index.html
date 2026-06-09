@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrbitalFire — Monitoramento orbital de queimadas</title>
+<meta name="description" content="OrbitalFire: alerta precoce de queimadas a partir de dados de satélite. FIAP Global Solution 2026 · ODS 13.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#070B14; --bg2:#0B1220; --surface:#111A2B; --surface2:#16223A;
+    --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
+    --text:#E6EDF6; --muted:#8593A8;
+    --baixo:#34D399; --moderado:#FACC15; --alto:#FB923C; --critico:#EF4444;
+    --brand:#38BDF8;
+    --thermal:linear-gradient(90deg,#34D399 0%,#FACC15 38%,#FB923C 68%,#EF4444 100%);
+    --display:'Space Grotesk',sans-serif; --body:'Inter',sans-serif; --mono:'Space Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(56,189,248,.08), transparent 60%),
+      radial-gradient(900px 500px at 10% 10%, rgba(239,68,68,.06), transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:var(--body); line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  a{color:inherit;text-decoration:none}
+
+  /* Header */
+  header{position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);
+    background:rgba(7,11,20,.72);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;letter-spacing:.3px}
+  .orbit{width:22px;height:22px;position:relative}
+  .orbit::before{content:"";position:absolute;inset:0;border:1.5px solid var(--brand);
+    border-radius:50%;transform:rotate(-25deg) scaleY(.5);opacity:.7}
+  .orbit::after{content:"";position:absolute;top:8px;left:8px;width:6px;height:6px;border-radius:50%;
+    background:var(--critico);box-shadow:0 0 10px var(--critico)}
+  nav .links{display:flex;gap:28px;font-size:14px;color:var(--muted)}
+  nav .links a:hover{color:var(--text)}
+  .status{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--baixo)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--baixo);box-shadow:0 0 0 0 rgba(52,211,153,.6);animation:pulse 2.4s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(52,211,153,.5)}70%{box-shadow:0 0 0 7px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+
+  /* Hero */
+  .hero{padding:84px 0 56px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--brand)}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(38px,6vw,68px);line-height:1.02;margin:18px 0 0;letter-spacing:-1px}
+  h1 .hot{background:var(--thermal);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{max-width:620px;color:var(--muted);font-size:18px;margin-top:20px}
+
+  /* Thermal signature */
+  .thermal-card{margin-top:44px;background:linear-gradient(180deg,var(--surface),var(--bg2));
+    border:1px solid var(--line);border-radius:18px;padding:26px 26px 22px;position:relative;overflow:hidden}
+  .thermal-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+  .thermal-head .label{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+  .reading{font-family:var(--mono);font-size:13px;color:var(--alto)}
+  .scale{position:relative;height:14px;border-radius:8px;background:var(--thermal);margin:22px 0 8px;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+  .marker{position:absolute;top:-7px;width:4px;height:28px;background:#fff;border-radius:3px;
+    box-shadow:0 0 12px rgba(255,255,255,.7);left:72%}
+  .scale-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .scale-labels span:nth-child(1){color:var(--baixo)}
+  .scale-labels span:nth-child(2){color:var(--moderado)}
+  .scale-labels span:nth-child(3){color:var(--alto)}
+  .scale-labels span:nth-child(4){color:var(--critico)}
+
+  /* Sections */
+  section{padding:64px 0;border-top:1px solid var(--line)}
+  .sec-eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--brand);margin-bottom:14px}
+  h2{font-family:var(--display);font-weight:600;font-size:clamp(26px,3.5vw,36px);letter-spacing:-.5px}
+  .sec-lede{color:var(--muted);max-width:640px;margin-top:14px}
+
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:34px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px}
+  .card .num{font-family:var(--mono);font-size:12px;color:var(--brand)}
+  .card h3{font-family:var(--display);font-weight:600;font-size:18px;margin:10px 0 8px}
+  .card p{color:var(--muted);font-size:14px}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:30px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px}
+  .stat .big{font-family:var(--display);font-weight:700;font-size:30px}
+  .stat .big.red{color:var(--critico)} .stat .big.amber{color:var(--alto)} .stat .big.cyan{color:var(--brand)}
+  .stat .cap{color:var(--muted);font-size:13px;margin-top:6px}
+
+  /* Pipeline */
+  .pipe{display:flex;flex-direction:column;gap:12px;margin-top:34px}
+  .step{display:grid;grid-template-columns:54px 1fr;gap:18px;align-items:center;
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .step .idx{font-family:var(--mono);font-weight:700;font-size:18px;color:var(--bg);
+    width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:var(--brand)}
+  .step:nth-child(2) .idx{background:var(--baixo)} .step:nth-child(3) .idx{background:var(--moderado)}
+  .step:nth-child(4) .idx{background:var(--alto)} .step:nth-child(5) .idx{background:var(--critico)}
+  .step h3{font-family:var(--display);font-weight:600;font-size:16px}
+  .step p{color:var(--muted);font-size:14px;margin-top:2px}
+
+  /* Biome panel (simulado) */
+  .panel{margin-top:30px;background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .panel .ph{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);
+    font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+  .row{display:grid;grid-template-columns:1.4fr .8fr .8fr auto;gap:12px;align-items:center;
+    padding:14px 20px;border-bottom:1px solid var(--line);font-size:14px}
+  .row:last-child{border-bottom:0}
+  .row .b{font-family:var(--mono);color:var(--muted);font-size:13px}
+  .badge{justify-self:end;font-family:var(--mono);font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px}
+  .b-baixo{color:var(--baixo);background:rgba(52,211,153,.12)}
+  .b-moderado{color:var(--moderado);background:rgba(250,204,21,.12)}
+  .b-alto{color:var(--alto);background:rgba(251,146,60,.14)}
+  .b-critico{color:var(--critico);background:rgba(239,68,68,.16)}
+  .note{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:12px}
+
+  /* Team */
+  .team{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px}
+  .member{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .member .nm{font-family:var(--display);font-weight:600}
+  .member .rm{font-family:var(--mono);font-size:13px;color:var(--brand);margin-top:4px}
+
+  footer{border-top:1px solid var(--line);padding:36px 0;color:var(--muted);font-size:13px}
+  .foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;align-items:center}
+  .ods{font-family:var(--mono);color:var(--baixo)}
+
+  @media(max-width:760px){
+    .grid3,.stats,.team{grid-template-columns:1fr}
+    nav .links{display:none}
+    .row{grid-template-columns:1fr auto;gap:6px}
+    .row .b{display:none}
+  }
+  @media(prefers-reduced-motion:reduce){.dot{animation:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <div class="brand"><span class="orbit"></span>OrbitalFire</div>
+    <nav class="links">
+      <a href="#problema">Problema</a>
+      <a href="#solucao">Solução</a>
+      <a href="#mapa">Monitoramento</a>
+      <a href="#equipe">Equipe</a>
+    </nav>
+    <div class="status"><span class="dot"></span>SISTEMA OPERACIONAL</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- HERO -->
+  <section class="hero" style="border-top:0;padding-top:84px">
+    <div class="eyebrow">Monitoramento orbital · ODS 13 · Ação Climática</div>
+    <h1>O fogo deixa rastro<br>no espaço <span class="hot">antes</span> de chegar ao chão.</h1>
+    <p class="lede">OrbitalFire cruza focos de calor de satélite com dados climáticos para
+      prever o risco de queimada e emitir alerta precoce — traduzindo dado orbital em
+      decisão para defesa civil, brigadas e produtores rurais.</p>
+
+    <div class="thermal-card">
+      <div class="thermal-head">
+        <span class="label">Escala de risco OrbitalFire</span>
+        <span class="reading">leitura simulada · risco ALTO (FWI 22.4)</span>
+      </div>
+      <div class="scale"><span class="marker"></span></div>
+      <div class="scale-labels"><span>BAIXO</span><span>MODERADO</span><span>ALTO</span><span>CRÍTICO</span></div>
+    </div>
+  </section>
+
+  <!-- PROBLEMA -->
+  <section id="problema">
+    <div class="sec-eyebrow">O problema</div>
+    <h2>Hoje, reage-se ao fogo. Tarde demais.</h2>
+    <p class="sec-lede">O dado orbital existe — INPE, NASA FIRMS, Copernicus geram focos de
+      calor diariamente. O que falta é software que transforme esse dado em alerta acionável
+      antes do incêndio se alastrar. Quem paga a conta são comunidades rurais, o agronegócio
+      e a saúde pública.</p>
+    <div class="stats">
+      <div class="stat"><div class="big red">73,8%</div><div class="cap">dos focos ocorrem na estação seca (mai–set), segundo nossa base analítica</div></div>
+      <div class="stat"><div class="big amber">+US$ bi</div><div class="cap">em custo anual com saúde, combate e perdas no agro</div></div>
+      <div class="stat"><div class="big cyan">ODS 13</div><div class="cap">Ação Climática — com interface aos ODS 9 e 11</div></div>
+    </div>
+  </section>
+
+  <!-- SOLUÇÃO -->
+  <section id="solucao">
+    <div class="sec-eyebrow">Como funciona</div>
+    <h2>Do satélite ao alerta, em cinco etapas.</h2>
+    <p class="sec-lede">Cada camada é uma disciplina da solução integrada — um pipeline coeso,
+      não peças soltas.</p>
+    <div class="pipe">
+      <div class="step"><div class="idx">1</div><div><h3>Captação orbital</h3><p>Focos de calor e índices climáticos de satélite (NASA FIRMS, clima ao vivo) entram no sistema.</p></div></div>
+      <div class="step"><div class="idx">2</div><div><h3>Pipeline de dados</h3><p>Ingestão, tratamento e carga no banco analítico, orquestrados automaticamente (Apache Airflow → Oracle).</p></div></div>
+      <div class="step"><div class="idx">3</div><div><h3>Previsão de risco</h3><p>Modelo de machine learning estima a classe de risco de queimada e explica os fatores (SHAP).</p></div></div>
+      <div class="step"><div class="idx">4</div><div><h3>Validação visual</h3><p>CNN classifica a imagem de satélite (com/sem queimada) para confirmar o foco e cortar falsos positivos.</p></div></div>
+      <div class="step"><div class="idx">5</div><div><h3>Alerta precoce</h3><p>Risco crítico dispara notificação para os responsáveis — a saída que move a operação.</p></div></div>
+    </div>
+  </section>
+
+  <!-- MONITORAMENTO (simulado) -->
+  <section id="mapa">
+    <div class="sec-eyebrow">Painel de monitoramento</div>
+    <h2>Risco por bioma, em tempo quase real.</h2>
+    <p class="sec-lede">Representação com dados simulados do que o produto entrega em operação.</p>
+    <div class="panel">
+      <div class="ph"><span>BIOMA</span><span>STATUS</span></div>
+      <div class="row"><div>Pantanal · Corumbá</div><div class="b">FWI 27.1</div><div class="b">35°C / 18%</div><span class="badge b-critico">CRÍTICO</span></div>
+      <div class="row"><div>Cerrado · Brasília</div><div class="b">FWI 22.4</div><div class="b">33°C / 24%</div><span class="badge b-alto">ALTO</span></div>
+      <div class="row"><div>Caatinga · Petrolina</div><div class="b">FWI 16.8</div><div class="b">31°C / 30%</div><span class="badge b-moderado">MODERADO</span></div>
+      <div class="row"><div>Amazônia · Manaus</div><div class="b">FWI 9.2</div><div class="b">29°C / 71%</div><span class="badge b-baixo">BAIXO</span></div>
+      <div class="row"><div>Mata Atlântica · São Paulo</div><div class="b">FWI 11.0</div><div class="b">26°C / 64%</div><span class="badge b-baixo">BAIXO</span></div>
+    </div>
+    <p class="note">// dados ilustrativos — em produção alimentados pelo pipeline OrbitalFire</p>
+  </section>
+
+  <!-- EQUIPE -->
+  <section id="equipe">
+    <div class="sec-eyebrow">A equipe</div>
+    <h2>Engenharia por trás do OrbitalFire.</h2>
+    <div class="team">
+      {% for m in equipe %}
+      <div class="member"><div class="nm">{{ m.nome }}</div><div class="rm">RM {{ m.rm }}</div></div>
+      {% endfor %}
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div>OrbitalFire · FIAP Global Solution 2026 · Indústria Espacial · Eng. de Software 4º Ano</div>
+    <div class="ods">{{ mission_note }}</div>
+  </div>
+</footer>
+</body>
+</html>
