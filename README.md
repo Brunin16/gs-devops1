@@ -134,20 +134,5 @@ git commit -am "chore: ajuste de copy na landing" && git push origin main
 ```
 Veja as duas execuções em **GitHub → Actions** e em **App Service → Deployment Center**.
 
-URL pública: `https://<APP>.azurewebsites.net`
-
----
-
-## Checklist da entrega (critérios SDTCC)
-
-| Critério | Status | Onde |
-|---|---|---|
-| Aplicação no App Service (identidade, problema/ODS, funcionamento) | ✅ código | `app.py` + `templates/index.html` |
-| Pipeline CI/CD (login seguro, 2 deploys) | ✅ código | `.github/workflows/deploy.yml` + passo 5 |
-| Segurança (Key Vault + GitHub Secrets + IAM role) | ✅ runbook | passos 2 e 3 |
-| Monitoramento (App Insights + Alert Rule) | ✅ runbook | passo 4 |
-| Documentação (arquitetura, prints, link) | ⬜ você | relatório PDF com os prints |
-
-**Pendências suas:** rodar o runbook na sua subscription, tirar os prints (Actions verde,
-Deployment Center com 2 deploys, Key Vault, App Insights/Alert, app no ar) e montar o
-relatório PDF. Me mande os prints que eu monto o relatório.
+URL pública: ` https://orbitalfire-devops-rm558303.azurewebsites.net
+`
